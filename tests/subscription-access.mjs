@@ -7,7 +7,7 @@ const database=async(...args)=>{queries.push(args);if(fail)throw Error('offline'
 const filter=encodeURIComponent;
 const isAdmin=async()=>admin;
 const pakistanDay=()=> '2026-11-09';
-export function state(v){rows=v.rows||[];admin=!!v.admin;fail=!!v.fail;queries=[]}
+export function state(v){rows=v.rows||[];responses=[...(v.responses||[])];admin=!!v.admin;fail=!!v.fail;queries=[]}
 export function calls(){return queries}`;
 const js=ts.transpile(harness+source,{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022});
 const api=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
@@ -15,6 +15,6 @@ const user={userId:'rep-1',email:'rep@example.test'};
 api.state({admin:true});let s=await api.subscriptionAccess(user);assert.equal(s.status,'admin');assert.equal(s.active,true);
 api.state({rows:[{starts:'2026-11-01',ends:'2026-12-01'}]});s=await api.subscriptionAccess(user);assert.equal(s.status,'active');assert.equal(s.active,true);
 api.state({rows:[]});s=await api.subscriptionAccess(user);assert.equal(s.status,'expired');assert.equal(s.active,false);
-api.state({rows:[{starts:'2026-11-10',ends:'2026-12-10'}]});s=await api.subscriptionAccess(user);assert.equal(s.status,'pending');assert.equal(s.active,false);
+api.state({responses:[[],[{starts:'2026-11-10',ends:'2026-12-10'}]]});s=await api.subscriptionAccess(user);assert.equal(s.status,'pending');assert.equal(s.active,false);
 api.state({fail:true});s=await api.subscriptionAccess(user);assert.equal(s.status,'unverified');assert.equal(s.active,false);
 console.log('PASS: admin exemption, active 30-day plan, expired plan, scheduled plan and fail-closed database errors.');
