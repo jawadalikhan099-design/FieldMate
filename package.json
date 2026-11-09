@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "deploy:setup": "node scripts/cloudflare-deploy.mjs",
-    "check": "node tests/self-signup.mjs && node tests/independent-auth.mjs && node tests/netlify-records.mjs && tsc --noEmit",
+    "check": "node tests/self-signup.mjs && node tests/independent-auth.mjs && node tests/netlify-records.mjs && node tests/subscription-access.mjs && tsc --noEmit",
     "start": "next start"
   },
   "dependencies": {
