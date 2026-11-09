@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 function nextMonth(day:string){const d=new Date(day+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+30);return d.toISOString().slice(0,10);}
 const fmt=(n:number)=>new Intl.NumberFormat('en-PK').format(n);
-export default function AdminDashboard(){const [data,setData]=useState<any>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[selected,setSelected]=useState(''),[query,setQuery]=useState(''),[form,setForm]=useState({paidOn:'',starts:'',ends:'',amount:'1000',note:''});
+export default function AdminDashboard(){const [data,setData]=useState<any>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[selected,setSelected]=useState(''),[query,setQuery]=useState(''),[form,setForm]=useState({paidOn:'',starts:'',ends:'',amount:'1000',paymentMethod:'Cash',note:''});
 async function load(){try{const r=await fetch('/api/admin',{cache:'no-store'});if(!r.ok)throw Error(r.status===403?'Admin access required.':'Could not load dashboard.');setData(await r.json());setError('');}catch(e:any){setError(e.message)}}
 useEffect(()=>{load();const timer=setInterval(load,60000);return()=>clearInterval(timer)},[]);
 async function save(e:React.FormEvent){e.preventDefault();setBusy(true);try{const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,memberId:selected})});if(!r.ok)throw Error(((await r.json()) as any).error);await load();setSelected('');}catch(e:any){setError(e.message||'Save failed.')}finally{setBusy(false)}}
