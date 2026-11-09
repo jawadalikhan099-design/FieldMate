@@ -1,0 +1,1 @@
+ALTER TABLE `records` ADD `owner_id` text DEFAULT 'original-workspace' NOT NULL;

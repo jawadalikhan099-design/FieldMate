@@ -1,0 +1,12 @@
+import {getFieldMateUser} from '../../fieldmate-auth';
+import {isAdmin,pakistanDay} from '../../../lib/admin';
+import {getDb} from '../../../db';
+import {members,memberDays,subscriptions} from '../../../db/schema';
+import {eq,gte} from 'drizzle-orm';
+export const dynamic='force-dynamic';
+const options={headers:{'Cache-Control':'private, no-store'}};
+async function authorized(){return isAdmin(await getFieldMateUser());}
+export async function GET(){if(!await authorized())return Response.json({error:'Admin access required'},{status:403,...options});try{const db=getDb(),today=pakistanDay();const [users,days,payments]=await Promise.all([db.select().from(members),db.select().from(memberDays).where(gte(memberDays.day,today.slice(0,7)+'-01')),db.select().from(subscriptions)]);return Response.json({users,days,payments,today},options);}catch{return Response.json({error:'Unable to load admin dashboard'},{status:500,...options});}}
+const validDay=(s:unknown)=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s))&&new Date(s).toISOString().slice(0,10)===s;
+export async function POST(req:Request){if(!await authorized())return Response.json({error:'Admin access required'},{status:403,...options});try{const b:any=await req.json();if(!b||typeof b.memberId!=='string'||!validDay(b.paidOn)||!validDay(b.starts)||!validDay(b.ends)||b.ends<=b.starts||!Number.isFinite(Number(b.amount))||Number(b.amount)<=0||Number(b.amount)>1000000||typeof b.note!=='string'||b.note.length>500)return Response.json({error:'Enter valid dates, amount and note'},{status:400,...options});const db=getDb();if(!(await db.select().from(members).where(eq(members.id,b.memberId)).limit(1)).length)return Response.json({error:'User not found'},{status:404,...options});await db.insert(subscriptions).values({id:crypto.randomUUID(),memberId:b.memberId,paidOn:b.paidOn,starts:b.starts,ends:b.ends,amount:String(Number(b.amount)),note:b.note});return Response.json({ok:true},options);}catch{return Response.json({error:'Payment could not be saved'},{status:500,...options});}}
+export async function DELETE(req:Request){if(!await authorized())return Response.json({error:'Admin access required'},{status:403,...options});const id=new URL(req.url).searchParams.get('id');if(!id)return Response.json({error:'Missing payment'},{status:400,...options});await getDb().delete(subscriptions).where(eq(subscriptions.id,id));return Response.json({ok:true},options);}
