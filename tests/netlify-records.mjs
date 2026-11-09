@@ -1,0 +1,11 @@
+import fs from 'node:fs';import ts from 'typescript';import assert from 'node:assert/strict';
+const source=fs.readFileSync('app/api/records/route.ts','utf8').replace(/^import .*;\n/gm,'');
+const harness=`let user=null,calls=[];const getFieldMateUser=async()=>user;const filter=encodeURIComponent;const sameOrigin=r=>r.headers.get('origin')===new URL(r.url).origin;const scopedRecordId=(u,id)=>u+':'+id;const database=async(...args)=>{calls.push(args);return []};export const setup=u=>{user=u;calls=[]};export const inspect=()=>calls;`;
+const api=await import('data:text/javascript;base64,'+Buffer.from(ts.transpile(harness+source,{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022})).toString('base64'));
+const req=(method,body,origin='https://fm.test')=>new Request('https://fm.test/api/records?id=victim-id',{method,headers:{Origin:origin},...(body?{body:JSON.stringify(body)}:{})});
+assert.equal((await api.GET()).status,401);assert.equal(api.inspect().length,0);
+api.setup({userId:'customer-a'});assert.equal((await api.POST(req('POST',{kind:'Salary',data:{Amount:'1000'}},'https://evil.test'))).status,403);assert.equal(api.inspect().length,0);
+assert.equal((await api.GET()).status,200);assert.match(api.inspect()[0][1],/owner_id=eq.customer-a/);
+api.setup({userId:'customer-a'});assert.equal((await api.POST(req('POST',{id:'victim-id',ownerId:'customer-b',kind:'Salary',data:{Amount:'1000'}}))).status,200);const write=api.inspect().find(c=>c[2]==='POST');assert.equal(write[3].owner_id,'customer-a');assert.equal(write[3].id,'customer-a:victim-id');
+api.setup({userId:'customer-a'});assert.equal((await api.DELETE(req('DELETE'))).status,200);assert.match(api.inspect()[0][1],/^owner_id=eq.customer-a&/);
+console.log('PASS: unauthenticated access, cross-origin writes, forged ownership, namespaced IDs, owner-scoped deletion.');

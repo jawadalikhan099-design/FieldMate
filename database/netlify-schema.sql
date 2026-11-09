@@ -1,0 +1,55 @@
+begin;
+create schema if not exists fieldmate_private;
+revoke all on schema fieldmate_private from public;
+grant usage on schema fieldmate_private to authenticated;
+create table fieldmate_private.owner_config(email text primary key);
+revoke all on fieldmate_private.owner_config from public,anon,authenticated;
+create table public.fm_admins(user_id uuid primary key references auth.users(id));
+alter table public.fm_admins enable row level security;
+revoke all on public.fm_admins from anon,authenticated;
+grant select on public.fm_admins to authenticated;
+create policy own_admin_status on public.fm_admins for select to authenticated using(user_id=(select auth.uid()));
+create function fieldmate_private.is_admin() returns boolean language sql stable security definer set search_path='' as $$select auth.uid() is not null and exists(select 1 from public.fm_admins where user_id=auth.uid())$$;
+revoke all on function fieldmate_private.is_admin() from public;
+grant execute on function fieldmate_private.is_admin() to authenticated;
+create table public.fm_records(id text primary key,owner_id uuid not null references auth.users(id),kind text not null,data text not null check(jsonb_typeof(data::jsonb)='object'),created_at timestamptz not null default now());
+create index fm_records_owner on public.fm_records(owner_id);
+alter table public.fm_records enable row level security;
+revoke all on public.fm_records from anon,authenticated;
+grant select,insert,update,delete on public.fm_records to authenticated;
+create policy own_records on public.fm_records for all to authenticated using(owner_id=(select auth.uid())) with check(owner_id=(select auth.uid()));
+create table public.fm_members(id uuid primary key references auth.users(id),email text not null,name text not null,first_seen timestamptz not null default now(),last_seen timestamptz not null default now());
+alter table public.fm_members enable row level security;
+revoke all on public.fm_members from anon,authenticated;
+grant select on public.fm_members to authenticated;
+create policy members_visibility on public.fm_members for select to authenticated using(id=(select auth.uid()) or (select fieldmate_private.is_admin()));
+create table public.fm_member_days(id text primary key,member_id uuid not null references public.fm_members(id),day date not null);
+create index fm_member_days_member on public.fm_member_days(member_id);
+alter table public.fm_member_days enable row level security;
+revoke all on public.fm_member_days from anon,authenticated;
+grant select on public.fm_member_days to authenticated;
+create policy days_visibility on public.fm_member_days for select to authenticated using(member_id=(select auth.uid()) or (select fieldmate_private.is_admin()));
+create table public.fm_subscriptions(id uuid primary key,member_id uuid not null references public.fm_members(id),paid_on date not null,starts date not null,ends date not null check(ends>starts),amount numeric not null check(amount>0 and amount<=1000000),note text not null check(length(note)<=500));
+create index fm_subscriptions_member on public.fm_subscriptions(member_id);
+alter table public.fm_subscriptions enable row level security;
+revoke all on public.fm_subscriptions from anon,authenticated;
+grant select,insert,update,delete on public.fm_subscriptions to authenticated;
+create policy admin_subscriptions on public.fm_subscriptions for all to authenticated using((select fieldmate_private.is_admin())) with check((select fieldmate_private.is_admin()));
+-- Activity uses trusted provider identity; clients cannot forge member counts or timestamps.
+create function public.fm_touch_account() returns void language plpgsql security invoker set search_path='' as $$begin perform fieldmate_private.touch_account();end;$$;
+create function fieldmate_private.touch_account() returns void language plpgsql security definer set search_path='' as $$
+declare u auth.users%rowtype; d date;
+begin
+ select * into u from auth.users where id=auth.uid() and email_confirmed_at is not null;
+ if u.id is null then raise exception 'Confirmed account required' using errcode='42501';end if;
+ -- Only the verified owner email can bootstrap administrator access.
+ if exists(select 1 from fieldmate_private.owner_config c where c.email=lower(u.email)) then insert into public.fm_admins(user_id) values(u.id) on conflict(user_id) do nothing;end if;
+ insert into public.fm_members(id,email,name) values(u.id,u.email,coalesce(nullif(u.raw_user_meta_data->>'full_name',''),u.email)) on conflict(id) do update set email=excluded.email,name=excluded.name,last_seen=now();
+ d:=(now() at time zone 'Asia/Karachi')::date;
+ insert into public.fm_member_days(id,member_id,day) values(u.id::text||':'||d::text,u.id,d) on conflict(id) do nothing;
+end;$$;
+revoke all on function fieldmate_private.touch_account() from public;
+grant execute on function fieldmate_private.touch_account() to authenticated;
+revoke all on function public.fm_touch_account() from public,anon;
+grant execute on function public.fm_touch_account() to authenticated;
+commit;

@@ -1,5 +1,5 @@
 import fs from 'node:fs';import ts from 'typescript';import assert from 'node:assert/strict';
-const source=fs.readFileSync('app/fieldmate-auth.ts','utf8').replace(/^import .*;\n/gm,'');
+const source=fs.readFileSync('app/fieldmate-auth.ts','utf8').replace(/^import .*;\n/gm,'').replace('const env=process.env;','');
 const harness=`const env={SUPABASE_URL:'https://demo.supabase.co',SUPABASE_PUBLISHABLE_KEY:'public-key',ADMIN_USER_ID:'owner'};let jar=new Map(),calls=[],mode='invalid';const cookies=async()=>({get:n=>jar.has(n)?{value:jar.get(n)}:undefined,set:(n,v,opts)=>{jar.set(n,v);calls.push({name:n,opts})}});const fetch=async(url,opts)=>{calls.push({url,opts});if(mode==='valid'&&url.endsWith('/user'))return Response.json({id:'verified-user',email:'user@example.test',email_confirmed_at:'2026-11-09',user_metadata:{}});return Response.json({error:'invalid'},{status:401})};export function setup(v,m){jar=new Map(Object.entries(v));mode=m;calls=[]}export function inspect(){return calls}`;
 const api=await import('data:text/javascript;base64,'+Buffer.from(ts.transpile(harness+'\n'+source,{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022})).toString('base64'));
 api.setup({},'invalid');assert.equal(await api.getFieldMateUser(),null);assert.equal(api.inspect().length,0);

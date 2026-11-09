@@ -6,14 +6,15 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
+    "dev": "next dev",
+    "build": "next build --webpack",
     "deploy": "wrangler deploy --config dist/server/wrangler.json",
     "db:migrate": "wrangler d1 migrations apply fieldmate --remote",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "deploy:setup": "node scripts/cloudflare-deploy.mjs",
-    "check": "node tests/self-signup.mjs && node tests/independent-auth.mjs && node tests/account-isolation.mjs && node tests/admin-access.mjs && tsc --noEmit"
+    "check": "node tests/self-signup.mjs && node tests/independent-auth.mjs && node tests/netlify-records.mjs && tsc --noEmit",
+    "start": "next start"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

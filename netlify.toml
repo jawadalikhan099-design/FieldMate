@@ -1,0 +1,7 @@
+[build]
+  command = "pnpm build"
+  publish = ".next"
+[build.environment]
+  NODE_VERSION = "22"
+  SUPABASE_URL = "https://iohhchzgqmetaxqbyycj.supabase.co"
+  SUPABASE_PUBLISHABLE_KEY = "sb_publishable_6zYZHWoPGiuMrbxAhInjFA_PCe_QX4K"
