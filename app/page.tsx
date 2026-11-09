@@ -13,7 +13,7 @@ import {linkAreaSales} from './linked-sales';
 import {overviewTotals} from './overview-totals';
 import IncentiveCalculator from './incentive-calculator';
 import {Activity,LayoutDashboard,Target,ShoppingBag,Users,MapPin,Wallet,CalendarCheck,Award,Plus,ArrowUpRight,Download,X,Pencil,Trash2,Search} from 'lucide-react';
-const tabs=['Overview','Area Sales','Sales','Products','Incentive','Expenses','Salary','PSP Drs'];const icons=[LayoutDashboard,MapPin,Target,ShoppingBag,Award,Wallet,Wallet,Users];
+const tabs=['Overview','Products','Area Sales','Areas','Customers','Sales','Incentive','Expenses','Salary','PSP Drs'];const icons=[LayoutDashboard,ShoppingBag,MapPin,MapPin,Users,Target,Award,Wallet,Wallet,Users];
 const tabLabel=(t:string)=>t==='Sales'?'Target & Sales':t==='PSP Drs'?'Activity Drs':t;
 const fields:Record<string,string[]>={Targets:['Month','Amount'],Sales:['Date','Customer','Area','Product','Quantity','Amount'],Customers:['Name','Phone','Area','Notes'],Areas:['Name','Notes'],Expenses:['Date','Category','Amount','Notes'],Visits:['Date','Customer','Area','Notes'],Incentive:['Date','Area','Amount','Status','Notes'],Salary:['Date','Amount','Status','Notes'],'PSP Drs':['Name','Area','Phone','Notes']};
 const money=(n:number)=>new Intl.NumberFormat('en-PK',{maximumFractionDigits:0}).format(n);const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Karachi'});
