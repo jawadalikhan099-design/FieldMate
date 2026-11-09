@@ -1,13 +1,14 @@
 import fs from 'node:fs';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
-const source=fs.readFileSync('lib/subscription.ts','utf8').replace(/^import .*;\n/gm,'');
-let rows=[],admin=false,fail=false,queries=[];
+const source=fs.readFileSync('lib/subscription.ts','utf8').replace(/^import .*;\\n/gm,'');
+const harness=`let rows=[],admin=false,fail=false,queries=[];
 const database=async(...args)=>{queries.push(args);if(fail)throw Error('offline');return rows;};
 const filter=encodeURIComponent;
 const isAdmin=async()=>admin;
 const pakistanDay=()=> '2026-11-09';
-const harness=`export function state(v){rows=v.rows||[];admin=!!v.admin;fail=!!v.fail;queries=[]}export function calls(){return queries}`;
+export function state(v){rows=v.rows||[];admin=!!v.admin;fail=!!v.fail;queries=[]}
+export function calls(){return queries}`;
 const js=ts.transpile(harness+source,{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022});
 const api=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
 const user={userId:'rep-1',email:'rep@example.test'};
