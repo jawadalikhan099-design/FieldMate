@@ -10,3 +10,6 @@ The Supabase schema in `database/netlify-schema.sql` has already been applied to
 After deployment, set the Supabase Auth Site URL to the actual HTTPS Netlify URL and add its exact `/auth/confirm` URL to the redirect allowlist. Configure custom SMTP before inviting customer email addresses (default Supabase email delivery is restricted). These account settings are still required; deployment alone does not enable customer confirmation email.
 
 Run `pnpm check` and `pnpm build`. Existing Cloudflare scripts/config and SQLite migrations are retained for history but are not the Netlify deployment path. Existing personal records were not copied into this independent database.
+
+## Render deployment
+The root `render.yaml` defines a Free Node web service. Import the repository as a Render Blueprint to use its build command, start command and public Supabase settings automatically. The health endpoint is `/api/health`; it exposes no account data. Customer records remain in Supabase, outside Render's ephemeral filesystem. Free services sleep when idle and are intended for evaluation, not guaranteed production uptime. After the first deployment, configure the exact Render origin and `/auth/confirm` URL in Supabase Auth and enable customer SMTP delivery before onboarding customers.

@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: fieldmate
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    startCommand: pnpm start --hostname 0.0.0.0
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        value: https://iohhchzgqmetaxqbyycj.supabase.co
+      - key: SUPABASE_PUBLISHABLE_KEY
+        value: sb_publishable_6zYZHWoPGiuMrbxAhInjFA_PCe_QX4K
