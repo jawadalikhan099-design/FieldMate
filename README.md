@@ -88,3 +88,13 @@ node tests/admin-access.mjs
 ```
 
 The authentication provider enforces password rate limits. Password reset is administered through Supabase; a self-service reset flow is not included. Self-service signup is included and requires configured email delivery and confirmation redirects. Expired plans are informational only. Activity tracking begins on the new deployment's first use.
+
+## Cloudflare dashboard GitHub build
+
+Select the FieldMate repository under Workers > Create application > Connect GitHub (use Workers, not static upload or legacy Pages). Use repository root `/`, Worker name `fieldmate`, Build command `pnpm check`, and Deploy command `pnpm deploy:setup`. Keep the account on the Free plan. The configured build credential needs Workers Scripts edit and D1 edit for the selected account. Do not put any Cloudflare token in the repository or send it in chat.
+
+The setup deploy command reuses a D1 database named fieldmate if found, otherwise creates it, applies pending schema migrations, builds and deploys while keeping dashboard variables. It never deletes or resets a database. If the credential lacks permissions it stops and prints the failed step; it does not silently skip database setup.
+
+The project URL and active publishable (non-secret) Supabase key are preconfigured in wrangler.jsonc. No secret/service-role key is included. After the owner registers and confirms their email, configure ADMIN_USER_ID with their verified Supabase UUID as a Worker runtime variable. Complete the signup redirect and email-delivery setup described above. The script does not configure those or migrate any existing customer data automatically.
+
+Automated setup code is prepared and its JavaScript syntax has been checked, but no remote Cloudflare deployment has been performed from this package.

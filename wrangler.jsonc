@@ -3,8 +3,23 @@
   "name": "fieldmate",
   "main": "worker/index.ts",
   "compatibility_date": "2026-05-15",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "workers_dev": true,
-  "assets": {"directory": "dist/client"},
-  "d1_databases": [{"binding":"DB","database_name":"fieldmate","database_id":"00000000-0000-4000-8000-000000000000","migrations_dir":"drizzle"}]
+  "assets": {
+    "directory": "dist/client"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "fieldmate",
+      "database_id": "00000000-0000-4000-8000-000000000000",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "vars": {
+    "SUPABASE_URL": "https://iohhchzgqmetaxqbyycj.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_6zYZHWoPGiuMrbxAhInjFA_PCe_QX4K"
+  }
 }
