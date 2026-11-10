@@ -3,7 +3,7 @@ services:
     name: fieldmate
     runtime: node
     plan: free
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    buildCommand: corepack enable && pnpm install --no-frozen-lockfile && pnpm build
     startCommand: pnpm start --hostname 0.0.0.0
     healthCheckPath: /api/health
     envVars:
