@@ -9,12 +9,12 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "deploy": "wrangler deploy --config dist/server/wrangler.json",
-    "db:migrate": "wrangler d1 migrations apply fieldmate --remote",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "deploy:setup": "node scripts/cloudflare-deploy.mjs",
     "check": "node tests/self-signup.mjs && node tests/independent-auth.mjs && node tests/netlify-records.mjs && node tests/subscription-access.mjs && tsc --noEmit",
-    "start": "next start"
+    "start": "next start",
+    "build:cloudflare": "vinext build"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
